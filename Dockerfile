@@ -11,4 +11,6 @@ ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
 
-CMD ["/start.sh"]
+RUN chmod +x /var/www/html/scripts/00-laravel-deploy.sh
+
+CMD php artisan migrate --force && /start.sh
