@@ -258,4 +258,23 @@ class ProductController extends Controller
 
         return response()->json($product->fresh('images'));
     }
+
+    public function reorderImages(Request $request, Product $product)
+    {
+        $request->validate([
+            'image_ids' => 'required|array',
+            'image_ids.*' => 'integer|exists:product_images,id',
+        ]);
+
+        foreach ($request->image_ids as $index => $imageId) {
+            ProductImage::where('id', $imageId)
+                ->where('product_id', $product->id)
+                ->update([
+                    'sort_order' => $index,
+                    'is_primary' => $index === 0,
+                ]);
+        }
+
+        return response()->json($product->fresh('images'));
+    }
 }
