@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\SiteImage;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class SiteImageController extends Controller
 {
-    // Only these keys are allowed — keeps this from becoming an arbitrary file store
     private const ALLOWED_KEYS = ['hero_main', 'hero_side_1', 'hero_side_2', 'about_photo'];
 
     public function index()
@@ -29,14 +28,14 @@ class SiteImageController extends Controller
 
         $existing = SiteImage::where('key', $key)->first();
         if ($existing) {
-            Storage::disk('public')->delete($existing->image_path);
+            CloudinaryService::deleteByUrl($existing->image_path);
         }
 
-        $path = $request->file('image')->store('site', 'public');
+        $url = CloudinaryService::upload($request->file('image'), 'site');
 
         $siteImage = SiteImage::updateOrCreate(
             ['key' => $key],
-            ['image_path' => $path]
+            ['image_path' => $url]
         );
 
         return response()->json($siteImage, 201);
@@ -50,7 +49,7 @@ class SiteImageController extends Controller
             return response()->json(['message' => 'No image set for this key'], 404);
         }
 
-        Storage::disk('public')->delete($siteImage->image_path);
+        CloudinaryService::deleteByUrl($siteImage->image_path);
         $siteImage->delete();
 
         return response()->json(['message' => 'Image removed']);

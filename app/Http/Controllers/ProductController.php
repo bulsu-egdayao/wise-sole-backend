@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductSize;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -117,10 +117,10 @@ class ProductController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
-                $path = $file->store('products', 'public');
+                $url = CloudinaryService::upload($file, 'products');
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image_path' => $path,
+                    'image_path' => $url,
                     'is_primary' => $index === 0,
                     'sort_order' => $index,
                 ]);
@@ -182,7 +182,6 @@ class ProductController extends Controller
         $sizes = $validated['sizes'] ?? null;
         unset($validated['sizes']);
 
-        // Explicitly allow clearing sale_price by sending an empty value
         if ($request->has('sale_price') && $request->input('sale_price') === '') {
             $validated['sale_price'] = null;
         }
@@ -206,7 +205,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         foreach ($product->images as $image) {
-          Storage::disk('public')->delete($image->image_path);
+            CloudinaryService::deleteByUrl($image->image_path);
         }
         $product->delete();
         return response()->json(['message' => 'Product deleted']);
@@ -225,11 +224,11 @@ class ProductController extends Controller
         $existingCount = $product->images()->count();
 
         foreach ($request->file('images') as $index => $file) {
-            $path = $file->store('products', 'public');
+            $url = CloudinaryService::upload($file, 'products');
 
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_path' => $path,
+                'image_path' => $url,
                 'is_primary' => $existingCount === 0 && $index === 0,
                 'sort_order' => $existingCount + $index,
             ]);
@@ -246,7 +245,7 @@ class ProductController extends Controller
 
         $wasPrimary = $image->is_primary;
 
-        Storage::disk('public')->delete($image->image_path);
+        CloudinaryService::deleteByUrl($image->image_path);
         $image->delete();
 
         if ($wasPrimary) {
