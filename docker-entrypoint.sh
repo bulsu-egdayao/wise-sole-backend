@@ -10,6 +10,7 @@ sed -i "s/:80 /:${PORT} /g" /etc/apache2/sites-enabled/000-default.conf
 
 echo "Running Laravel deploy steps..."
 php artisan migrate --force
+php artisan db:seed --class=AdminUserSeeder --force
 php artisan storage:link || true
 php artisan config:clear
 php artisan route:clear
