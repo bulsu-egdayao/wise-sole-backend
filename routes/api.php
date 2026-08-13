@@ -6,6 +6,9 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\InquiryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SiteImageController;
+use App\Http\Controllers\TransactionCategoryController;
+use App\Http\Controllers\LegitimacyProofController;
+use App\Http\Controllers\VouchController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -21,6 +24,12 @@ Route::get('/products/sizes', [ProductController::class, 'availableSizes']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 
 Route::post('/inquiries', [InquiryController::class, 'store']);
+
+// Legitimacy page — public
+Route::get('/transaction-categories', [TransactionCategoryController::class, 'index']);
+Route::get('/legitimacy-proofs', [LegitimacyProofController::class, 'index']);
+Route::get('/vouches', [VouchController::class, 'index']);
+Route::post('/vouches', [VouchController::class, 'store'])->middleware('throttle:5,1');
 
 // Protected routes — require a valid Sanctum token (admin only)
 Route::middleware('auth:sanctum')->group(function () {
@@ -48,4 +57,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/categories/{category}/image', [CategoryController::class, 'destroyImage']);
     Route::post('/categories/{category}/hover-image', [CategoryController::class, 'uploadHoverImage']);
     Route::delete('/categories/{category}/hover-image', [CategoryController::class, 'destroyHoverImage']);
+
+    // Legitimacy page — admin management
+    Route::post('/transaction-categories', [TransactionCategoryController::class, 'store']);
+    Route::put('/transaction-categories/{transactionCategory}', [TransactionCategoryController::class, 'update']);
+    Route::delete('/transaction-categories/{transactionCategory}', [TransactionCategoryController::class, 'destroy']);
+
+    Route::post('/legitimacy-proofs', [LegitimacyProofController::class, 'store']);
+    Route::delete('/legitimacy-proofs/{legitimacyProof}', [LegitimacyProofController::class, 'destroy']);
+
+    Route::get('/vouches/admin', [VouchController::class, 'adminIndex']);
+    Route::put('/vouches/{vouch}/status', [VouchController::class, 'updateStatus']);
+    Route::delete('/vouches/{vouch}', [VouchController::class, 'destroy']);
 });
