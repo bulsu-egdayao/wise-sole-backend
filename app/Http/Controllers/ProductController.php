@@ -14,10 +14,14 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'images', 'sizes']);
+        $query = Product::with(['category', 'productType', 'images', 'sizes']);
 
         if ($request->filled('category')) {
             $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+        }
+
+        if ($request->filled('type')) {
+            $query->whereHas('productType', fn($q) => $q->where('slug', $request->type));
         }
 
         if ($request->filled('search')) {
@@ -62,7 +66,7 @@ class ProductController extends Controller
         };
 
         return $query->paginate(12);
-    }
+}
 
     public function availableSizes(Request $request)
     {
@@ -85,6 +89,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
+            'product_type_id' => 'nullable|exists:product_types,id',
             'stock' => 'required|integer|min:0',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
@@ -109,13 +114,14 @@ class ProductController extends Controller
             'price' => $validated['price'],
             'sale_price' => $validated['sale_price'] ?? null,
             'category_id' => $validated['category_id'],
+            'product_type_id' => $validated['product_type_id'] ?? null,
             'stock' => $validated['stock'],
             'is_available' => $validated['is_available'] ?? true,
             'is_featured' => $validated['is_featured'] ?? false,
             'is_new' => $validated['is_new'] ?? false,
         ]);
 
-        if ($request->hasFile('images')) {
+ if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
                 $url = CloudinaryService::upload($file, 'products');
                 ProductImage::create([
@@ -137,18 +143,18 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json($product->load('images', 'category', 'sizes'), 201);
+        return response()->json($product->load('images', 'category', 'productType', 'sizes'), 201);
     }
 
     public function show(Product $product)
     {
-        return $product->load(['category', 'images', 'sizes', 'inquiries' => fn($q) => $q->latest()]);
+        return $product->load(['category', 'productType', 'images', 'sizes', 'inquiries' => fn($q) => $q->latest()]);
     }
 
     public function showBySlug(string $slug)
     {
         $product = Product::where('slug', $slug)
-            ->with(['category', 'images', 'sizes'])
+            ->with(['category', 'productType', 'images', 'sizes'])
             ->firstOrFail();
 
         return response()->json($product);
@@ -162,6 +168,7 @@ class ProductController extends Controller
             'price' => 'sometimes|required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
+            'product_type_id' => 'nullable|exists:product_types,id',
             'stock' => 'sometimes|required|integer|min:0',
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
@@ -179,11 +186,16 @@ class ProductController extends Controller
             ], 422);
         }
 
-        $sizes = $validated['sizes'] ?? null;
+
+$sizes = $validated['sizes'] ?? null;
         unset($validated['sizes']);
 
         if ($request->has('sale_price') && $request->input('sale_price') === '') {
             $validated['sale_price'] = null;
+        }
+
+        if ($request->has('product_type_id') && $request->input('product_type_id') === '') {
+            $validated['product_type_id'] = null;
         }
 
         $product->update($validated);
@@ -199,7 +211,7 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json($product->load('images', 'category', 'sizes'));
+        return response()->json($product->load('images', 'category', 'productType', 'sizes'));
     }
 
     public function destroy(Product $product)
@@ -239,7 +251,8 @@ class ProductController extends Controller
 
     public function destroyImage(Product $product, ProductImage $image)
     {
-        if ($image->product_id !== $product->id) {
+
+if ($image->product_id !== $product->id) {
             return response()->json(['message' => 'Image does not belong to this product'], 403);
         }
 

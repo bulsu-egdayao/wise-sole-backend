@@ -13,6 +13,7 @@ class Product extends Model
     'price',
     'sale_price',
     'category_id',
+    'product_type_id',
     'stock',
     'is_available',
     'is_featured',
@@ -30,6 +31,11 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function productType()
+    {
+        return $this->belongsTo(ProductType::class);
     }
 
    public function sizes()

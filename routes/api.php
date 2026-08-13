@@ -9,6 +9,7 @@ use App\Http\Controllers\SiteImageController;
 use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\LegitimacyProofController;
 use App\Http\Controllers\VouchController;
+use App\Http\Controllers\ProductTypeController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -22,6 +23,7 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/slug/{slug}', [ProductController::class, 'showBySlug']);
 Route::get('/products/sizes', [ProductController::class, 'availableSizes']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::get('/product-types', [ProductTypeController::class, 'index']);
 
 Route::post('/inquiries', [InquiryController::class, 'store']);
 
@@ -46,6 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products/{product}/images', [ProductController::class, 'storeImages']);
     Route::delete('/products/{product}/images/{image}', [ProductController::class, 'destroyImage']);
     Route::put('/products/{product}/images/reorder', [ProductController::class, 'reorderImages']);
+    Route::post('/product-types', [ProductTypeController::class, 'store']);
+    Route::put('/product-types/{productType}', [ProductTypeController::class, 'update']);
+    Route::delete('/product-types/{productType}', [ProductTypeController::class, 'destroy']);
 
     Route::get('/inquiries', [InquiryController::class, 'index']);
     Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update']);
