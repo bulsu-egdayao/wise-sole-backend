@@ -12,6 +12,8 @@ class Product extends Model
     'description',
     'price',
     'sale_price',
+    'addon_name',
+    'addon_price',
     'category_id',
     'product_type_id',
     'stock',
@@ -23,6 +25,7 @@ class Product extends Model
   protected $casts = [
     'price' => 'decimal:2',
     'sale_price' => 'decimal:2',
+    'addon_price' => 'decimal:2',
     'is_available' => 'boolean',
     'is_featured' => 'boolean',
     'is_new' => 'boolean',

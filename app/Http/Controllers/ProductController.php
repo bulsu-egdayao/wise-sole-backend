@@ -88,6 +88,8 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
+            'addon_name' => 'nullable|string|max:255',
+            'addon_price' => 'nullable|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'product_type_id' => 'nullable|exists:product_types,id',
             'stock' => 'required|integer|min:0',
@@ -113,6 +115,8 @@ class ProductController extends Controller
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'sale_price' => $validated['sale_price'] ?? null,
+            'addon_name' => $validated['addon_name'] ?? null,
+            'addon_price' => $validated['addon_price'] ?? null,
             'category_id' => $validated['category_id'],
             'product_type_id' => $validated['product_type_id'] ?? null,
             'stock' => $validated['stock'],
@@ -167,6 +171,8 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
+            'addon_name' => 'nullable|string|max:255',
+            'addon_price' => 'nullable|numeric|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
             'product_type_id' => 'nullable|exists:product_types,id',
             'stock' => 'sometimes|required|integer|min:0',
@@ -196,6 +202,14 @@ $sizes = $validated['sizes'] ?? null;
 
         if ($request->has('product_type_id') && $request->input('product_type_id') === '') {
             $validated['product_type_id'] = null;
+        }
+
+        if ($request->has('addon_name') && $request->input('addon_name') === '') {
+            $validated['addon_name'] = null;
+        }
+
+        if ($request->has('addon_price') && $request->input('addon_price') === '') {
+            $validated['addon_price'] = null;
         }
 
         $product->update($validated);
