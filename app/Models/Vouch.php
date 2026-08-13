@@ -9,7 +9,7 @@ class Vouch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'rating', 'message', 'status'];
+    protected $fillable = ['name', 'rating', 'message', 'image_path', 'status'];
 
     protected $casts = [
         'rating' => 'integer',
