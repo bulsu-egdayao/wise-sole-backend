@@ -65,7 +65,9 @@ class ProductController extends Controller
             default => $query->orderBy('created_at', 'desc'),
         };
 
-        return $query->paginate(12);
+        $perPage = min($request->integer('per_page', 12), 200);
+
+        return $query->paginate($perPage);
 }
 
     public function availableSizes(Request $request)
