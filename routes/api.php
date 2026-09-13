@@ -25,7 +25,7 @@ Route::get('/products/sizes', [ProductController::class, 'availableSizes']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/product-types', [ProductTypeController::class, 'index']);
 
-Route::post('/inquiries', [InquiryController::class, 'store']);
+Route::post('/inquiries', [InquiryController::class, 'store'])->middleware('throttle:10,1');
 
 // Legitimacy page — public
 Route::get('/transaction-categories', [TransactionCategoryController::class, 'index']);
