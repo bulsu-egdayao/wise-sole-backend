@@ -10,6 +10,9 @@ use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\LegitimacyProofController;
 use App\Http\Controllers\VouchController;
 use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentSettingController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -32,6 +35,12 @@ Route::get('/transaction-categories', [TransactionCategoryController::class, 'in
 Route::get('/legitimacy-proofs', [LegitimacyProofController::class, 'index']);
 Route::get('/vouches', [VouchController::class, 'index']);
 Route::post('/vouches', [VouchController::class, 'store'])->middleware('throttle:5,1');
+
+// Orders & Checkout — public
+Route::post('/vouchers/validate', [VoucherController::class, 'validateCode'])->middleware('throttle:15,1');
+Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
+Route::get('/orders/track/{orderNumber}', [OrderController::class, 'track']);
+Route::get('/payment-settings', [PaymentSettingController::class, 'index']);
 
 // Protected routes — require a valid Sanctum token (admin only)
 Route::middleware('auth:sanctum')->group(function () {
@@ -74,4 +83,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/vouches/admin', [VouchController::class, 'adminIndex']);
     Route::put('/vouches/{vouch}/status', [VouchController::class, 'updateStatus']);
     Route::delete('/vouches/{vouch}', [VouchController::class, 'destroy']);
+
+    // Orders — admin management
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
+
+    // Vouchers — admin management
+    Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::post('/vouchers', [VoucherController::class, 'store']);
+    Route::put('/vouchers/{voucher}', [VoucherController::class, 'update']);
+    Route::put('/vouchers/{voucher}/toggle', [VoucherController::class, 'toggleActive']);
+    Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy']);
+
+    // Payment Settings — admin management
+    Route::put('/payment-settings', [PaymentSettingController::class, 'update']);
 });

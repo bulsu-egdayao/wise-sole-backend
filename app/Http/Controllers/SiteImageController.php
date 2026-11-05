@@ -8,7 +8,14 @@ use Illuminate\Http\Request;
 
 class SiteImageController extends Controller
 {
-    private const ALLOWED_KEYS = ['hero_main', 'hero_side_1', 'hero_side_2', 'about_photo'];
+    private const ALLOWED_KEYS = [
+        'hero_main',
+        'hero_side_1',
+        'hero_side_2',
+        'about_photo',
+        'payment_gcash_qr',
+        'payment_maribank_qr',
+    ];
 
     public function index()
     {
