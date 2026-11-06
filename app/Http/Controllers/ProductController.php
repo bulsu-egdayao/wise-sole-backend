@@ -262,14 +262,23 @@ $sizes = $validated['sizes'] ?? null;
     {
         @set_time_limit(300);
 
+        $files = $request->file('images');
+        if (!$files || !is_array($files)) {
+            return response()->json(['message' => 'No images were received. The file may exceed the server upload limit.'], 422);
+        }
+
+        foreach ($files as $file) {
+            if (!$file->isValid()) {
+                return response()->json([
+                    'message' => 'An image failed to upload from your device. Please compress the photo before uploading.'
+                ], 422);
+            }
+        }
+
         $request->validate([
             'images' => 'required|array',
             'images.*' => 'required|image|mimes:jpg,jpeg,png,webp,heic|max:20480',
         ]);
-
-        if (!$request->hasFile('images')) {
-            return response()->json(['message' => 'No images provided'], 422);
-        }
 
         $existingCount = $product->images()->count();
 

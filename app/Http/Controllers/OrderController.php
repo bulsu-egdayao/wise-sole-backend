@@ -16,8 +16,9 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         // Detect upload error before validator fails with generic message
-        if ($request->hasFile('receipt_image') && !$request->file('receipt_image')->isValid()) {
-            $errCode = $request->file('receipt_image')->getError();
+        $receiptFile = $request->file('receipt_image');
+        if ($receiptFile && !$receiptFile->isValid()) {
+            $errCode = $receiptFile->getError();
             $errMsg = match ($errCode) {
                 UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Receipt image exceeds upload size limit. Please upload a compressed screenshot.',
                 default => 'The receipt image failed to upload from your device.',
@@ -35,7 +36,7 @@ class OrderController extends Controller
             'delivery_notes' => 'nullable|string|max:500',
             'payment_method' => 'required|in:gcash,maribank,cod',
             'payment_reference' => 'nullable|string|max:100',
-            'receipt_image' => 'nullable|file|mimes:jpg,jpeg,png,webp,heic|max:12288',
+            'receipt_image' => 'nullable|file|mimes:jpg,jpeg,png,webp,heic|max:20480',
             'voucher_code' => 'nullable|string|max:30',
             'courier_name' => 'nullable|string|max:50',
             'items' => 'required|string', // JSON encoded string for multipart form compatibility
