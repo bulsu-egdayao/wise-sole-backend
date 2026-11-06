@@ -32,7 +32,7 @@ class OrderController extends Controller
             'delivery_city' => 'nullable|string|max:100',
             'delivery_province' => 'nullable|string|max:100',
             'delivery_notes' => 'nullable|string|max:500',
-            'payment_method' => 'required|in:gcash,maribank',
+            'payment_method' => 'required|in:gcash,maribank,cod',
             'payment_reference' => 'nullable|string|max:100',
             'receipt_image' => 'nullable|file|mimes:jpg,jpeg,png,webp,heic|max:12288',
             'voucher_code' => 'nullable|string|max:30',
@@ -55,7 +55,7 @@ class OrderController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($validated, $items, $receiptUrl) {
+        return DB::transaction(function () use ($request, $validated, $items, $receiptUrl) {
             $subtotal = 0;
             $preparedItems = [];
 
@@ -103,8 +103,11 @@ class OrderController extends Controller
                 }
             }
 
-            $shippingFee = 0; // Free or flat shipping for now
+            // COD orders have standard LBC Express shipping fee (₱150)
+            $isCod = ($validated['payment_method'] === 'cod');
+            $shippingFee = $isCod ? 150 : 0;
             $totalAmount = max(0, $subtotal - $discountAmount + $shippingFee);
+            $courierName = $validated['courier_name'] ?? ($isCod ? 'LBC Express' : null);
 
             $order = Order::create([
                 'user_id' => $request->user()?->id,
@@ -124,7 +127,7 @@ class OrderController extends Controller
                 'payment_method' => $validated['payment_method'],
                 'payment_reference' => $validated['payment_reference'] ?? null,
                 'receipt_image_path' => $receiptUrl,
-                'courier_name' => $validated['courier_name'] ?? null,
+                'courier_name' => $courierName,
                 'status' => 'pending_verification',
             ]);
 
