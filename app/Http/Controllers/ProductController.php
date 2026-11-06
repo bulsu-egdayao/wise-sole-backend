@@ -25,7 +25,17 @@ class ProductController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $search = strtolower(trim($request->search));
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(COALESCE(description, \'\')) LIKE ?', ["%{$search}%"])
+                  ->orWhereHas('category', function ($catQ) use ($search) {
+                      $catQ->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+                  })
+                  ->orWhereHas('productType', function ($typeQ) use ($search) {
+                      $typeQ->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+                  });
+            });
         }
 
         if ($request->filled('featured')) {
