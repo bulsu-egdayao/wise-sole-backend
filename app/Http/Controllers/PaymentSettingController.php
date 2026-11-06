@@ -10,8 +10,10 @@ class PaymentSettingController extends Controller
 {
     public function index()
     {
-        $gcashQr = SiteImage::where('key', 'payment_gcash_qr')->value('image_path');
-        $maribankQr = SiteImage::where('key', 'payment_maribank_qr')->value('image_path');
+        $gcashQr = SiteImage::where('key', 'payment_gcash_qr')->value('image_path')
+            ?: 'https://res.cloudinary.com/xrsfekgk/image/upload/v1793934903/site/ksaefvjr0xj3d86forpk.jpg';
+        $maribankQr = SiteImage::where('key', 'payment_maribank_qr')->value('image_path')
+            ?: 'https://res.cloudinary.com/xrsfekgk/image/upload/v1793934905/site/s6vb8vawxl8pm0c0v53l.jpg';
 
         return response()->json([
             'gcash_number' => SiteSetting::get('gcash_number', '09692891708'),
