@@ -9,6 +9,7 @@ use App\Models\Voucher;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -109,8 +110,7 @@ class OrderController extends Controller
             $totalAmount = max(0, $subtotal - $discountAmount + $shippingFee);
             $courierName = $validated['courier_name'] ?? ($isCod ? 'LBC Express' : null);
 
-            $order = Order::create([
-                'user_id' => $request->user()?->id,
+            $orderAttributes = [
                 'order_number' => Order::generateOrderNumber(),
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'] ?? null,
@@ -129,7 +129,13 @@ class OrderController extends Controller
                 'receipt_image_path' => $receiptUrl,
                 'courier_name' => $courierName,
                 'status' => 'pending_verification',
-            ]);
+            ];
+
+            if (Schema::hasColumn('orders', 'user_id')) {
+                $orderAttributes['user_id'] = $request->user()?->id;
+            }
+
+            $order = Order::create($orderAttributes);
 
             foreach ($preparedItems as $pItem) {
                 $order->items()->create($pItem);
@@ -146,20 +152,38 @@ class OrderController extends Controller
             return response()->json([], 401);
         }
 
-        // Match by user_id OR customer email
-        $orders = Order::with('items')
-            ->where(function ($q) use ($user) {
-                if (isset($user->id)) {
-                    $q->where('user_id', $user->id);
-                }
-                if ($user->email) {
-                    $q->orWhere('customer_email', $user->email);
-                }
-            })
-            ->latest()
-            ->get();
+        try {
+            $hasUserId = Schema::hasColumn('orders', 'user_id');
 
-        return response()->json($orders);
+            $query = Order::with('items');
+
+            if ($hasUserId && !empty($user->id)) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                    if (!empty($user->email)) {
+                        $q->orWhere('customer_email', $user->email);
+                    }
+                });
+            } else if (!empty($user->email)) {
+                $query->where('customer_email', $user->email);
+            } else {
+                return response()->json([]);
+            }
+
+            $orders = $query->latest()->get();
+            return response()->json($orders);
+        } catch (\Exception $e) {
+            // Failsafe fallback by customer_email
+            try {
+                $orders = Order::with('items')
+                    ->where('customer_email', $user->email)
+                    ->latest()
+                    ->get();
+                return response()->json($orders);
+            } catch (\Exception $fallbackEx) {
+                return response()->json([]);
+            }
+        }
     }
 
     public function track(string $orderNumber)
