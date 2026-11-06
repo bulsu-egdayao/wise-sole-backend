@@ -201,14 +201,22 @@ class OrderController extends Controller
             'admin_notes' => 'nullable|string|max:1000',
         ]);
 
-        if (!empty($validated['courier_name']) && !empty($validated['tracking_number'])) {
-            $generatedUrl = Order::generateTrackingUrl($validated['courier_name'], $validated['tracking_number']);
-            $validated['tracking_url'] = $validated['tracking_url'] ?: $generatedUrl;
+        try {
+            // Auto-generate tracking URL when courier + tracking number are provided
+            if (!empty($validated['courier_name']) && !empty($validated['tracking_number'])) {
+                $generatedUrl = Order::generateTrackingUrl($validated['courier_name'], $validated['tracking_number']);
+                // Use the manually provided URL if present, otherwise use the auto-generated one
+                $validated['tracking_url'] = ($validated['tracking_url'] ?? null) ?: $generatedUrl;
+            }
+
+            $order->update($validated);
+
+            return response()->json($order->load('items'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update order: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $order->update($validated);
-
-        return response()->json($order->load('items'));
     }
 
     public function destroy(Order $order)

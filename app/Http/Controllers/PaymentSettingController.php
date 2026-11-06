@@ -14,12 +14,12 @@ class PaymentSettingController extends Controller
         $maribankQr = SiteImage::where('key', 'payment_maribank_qr')->value('image_path');
 
         return response()->json([
-            'gcash_number' => SiteSetting::get('gcash_number', '09560929925'),
-            'gcash_name' => SiteSetting::get('gcash_name', 'Wise Sole'),
+            'gcash_number' => SiteSetting::get('gcash_number', '09692891708'),
+            'gcash_name' => SiteSetting::get('gcash_name', 'Ezekiel Dayao'),
             'gcash_qr_url' => $gcashQr,
 
-            'maribank_number' => SiteSetting::get('maribank_number', '1234-5678-9012'),
-            'maribank_name' => SiteSetting::get('maribank_name', 'Wise Sole'),
+            'maribank_number' => SiteSetting::get('maribank_number', '09692891708'),
+            'maribank_name' => SiteSetting::get('maribank_name', 'Ezekiel Dayao'),
             'maribank_qr_url' => $maribankQr,
 
             'shipping_note' => SiteSetting::get('shipping_note', 'Standard shipping takes 2-4 business days for Metro Manila, 4-7 business days for Provincial.'),
