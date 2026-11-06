@@ -98,6 +98,9 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'qc_timeline' => 'nullable|string|max:255',
+            'arrival_timeline' => 'nullable|string|max:255',
+            'packaging_inclusions' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'addon_name' => 'nullable|string|max:255',
@@ -108,7 +111,7 @@ class ProductController extends Controller
             'is_available' => 'boolean',
             'is_featured' => 'boolean',
             'is_new' => 'boolean',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,heic|max:10240',
             'sizes' => 'nullable|array',
             'sizes.*.size' => 'required_with:sizes|string|max:50',
             'sizes.*.stock' => 'required_with:sizes|integer|min:0',
@@ -125,6 +128,9 @@ class ProductController extends Controller
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']) . '-' . Str::random(5),
             'description' => $validated['description'] ?? null,
+            'qc_timeline' => $validated['qc_timeline'] ?? null,
+            'arrival_timeline' => $validated['arrival_timeline'] ?? null,
+            'packaging_inclusions' => $validated['packaging_inclusions'] ?? null,
             'price' => $validated['price'],
             'sale_price' => $validated['sale_price'] ?? null,
             'addon_name' => $validated['addon_name'] ?? null,
@@ -181,6 +187,9 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'qc_timeline' => 'nullable|string|max:255',
+            'arrival_timeline' => 'nullable|string|max:255',
+            'packaging_inclusions' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'addon_name' => 'nullable|string|max:255',
@@ -252,7 +261,7 @@ $sizes = $validated['sizes'] ?? null;
     public function storeImages(Request $request, Product $product)
     {
         $request->validate([
-            'images.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'images.*' => 'required|image|mimes:jpg,jpeg,png,webp,heic|max:10240',
         ]);
 
         if (!$request->hasFile('images')) {
