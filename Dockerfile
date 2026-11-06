@@ -15,8 +15,11 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
-# Allow Laravel's .htaccess to actually take effect (this is what makes /api/* routes work)
-RUN printf '<Directory /var/www/html/public>\n\tAllowOverride All\n</Directory>\n' >> /etc/apache2/apache2.conf
+# Allow Laravel's .htaccess to take effect and raise Apache request body limit to 128MB
+RUN printf '<Directory /var/www/html/public>\n\tAllowOverride All\n\tLimitRequestBody 134217728\n</Directory>\n' >> /etc/apache2/apache2.conf
+
+# Configure PHP upload and execution limits in official conf.d
+RUN printf 'upload_max_filesize = 64M\npost_max_size = 128M\nmemory_limit = 512M\nmax_execution_time = 300\nmax_input_time = 300\n' > /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

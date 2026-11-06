@@ -260,8 +260,11 @@ $sizes = $validated['sizes'] ?? null;
 
     public function storeImages(Request $request, Product $product)
     {
+        @set_time_limit(300);
+
         $request->validate([
-            'images.*' => 'required|image|mimes:jpg,jpeg,png,webp,heic|max:10240',
+            'images' => 'required|array',
+            'images.*' => 'required|image|mimes:jpg,jpeg,png,webp,heic|max:20480',
         ]);
 
         if (!$request->hasFile('images')) {
@@ -271,14 +274,21 @@ $sizes = $validated['sizes'] ?? null;
         $existingCount = $product->images()->count();
 
         foreach ($request->file('images') as $index => $file) {
-            $url = CloudinaryService::upload($file, 'products');
+            try {
+                $url = CloudinaryService::upload($file, 'products');
 
-            ProductImage::create([
-                'product_id' => $product->id,
-                'image_path' => $url,
-                'is_primary' => $existingCount === 0 && $index === 0,
-                'sort_order' => $existingCount + $index,
-            ]);
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $url,
+                    'is_primary' => $existingCount === 0 && $index === 0,
+                    'sort_order' => $existingCount + $index,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Cloudinary upload failed: " . $e->getMessage());
+                return response()->json([
+                    'message' => 'Failed to upload photo to Cloudinary: ' . $e->getMessage()
+                ], 500);
+            }
         }
 
         return response()->json($product->fresh('images'), 201);

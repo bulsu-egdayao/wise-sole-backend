@@ -27,7 +27,7 @@ class CloudinaryService
             ->implode('&');
         $signature = sha1($paramString . $apiSecret);
 
-        $response = Http::attach(
+        $response = Http::timeout(120)->retry(2, 500)->attach(
             'file',
             file_get_contents($file->getRealPath()),
             $file->getClientOriginalName()
@@ -70,7 +70,7 @@ class CloudinaryService
         $paramString = collect($paramsToSign)->map(fn($v, $k) => "$k=$v")->implode('&');
         $signature = sha1($paramString . $apiSecret);
 
-        Http::post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
+        Http::timeout(60)->post("https://api.cloudinary.com/v1_1/{$cloudName}/image/destroy", [
             'public_id' => $publicId,
             'api_key' => $apiKey,
             'timestamp' => $timestamp,
