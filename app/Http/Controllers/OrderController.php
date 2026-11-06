@@ -97,6 +97,7 @@ class OrderController extends Controller
             $totalAmount = max(0, $subtotal - $discountAmount + $shippingFee);
 
             $order = Order::create([
+                'user_id' => $request->user()?->id,
                 'order_number' => Order::generateOrderNumber(),
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'] ?? null,
@@ -123,6 +124,29 @@ class OrderController extends Controller
 
             return response()->json($order->load('items'), 201);
         });
+    }
+
+    public function myOrders(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([], 401);
+        }
+
+        // Match by user_id OR customer email
+        $orders = Order::with('items')
+            ->where(function ($q) use ($user) {
+                if (isset($user->id)) {
+                    $q->where('user_id', $user->id);
+                }
+                if ($user->email) {
+                    $q->orWhere('customer_email', $user->email);
+                }
+            })
+            ->latest()
+            ->get();
+
+        return response()->json($orders);
     }
 
     public function track(string $orderNumber)

@@ -16,6 +16,7 @@ use App\Http\Controllers\PaymentSettingController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::get('/site-images', [SiteImageController::class, 'index']);
 
 // Public read-only routes — anyone browsing the site can hit these
@@ -46,6 +47,7 @@ Route::get('/payment-settings', [PaymentSettingController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/my-orders', [OrderController::class, 'myOrders']);
 
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
